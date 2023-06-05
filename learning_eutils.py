@@ -2,10 +2,14 @@
 #PubmedArticleSet https://dtd.nlm.nih.gov/ncbi/pubmed/el-PubmedArticleSet.html
 #From nbib to RIS?? A bash tool??
 
+#RIS.import.keepID
+#RIS.import.ignoreUnknown
+
 import eutils
 from eutils._internal.xmlfacades.pubmedarticle import PubmedArticle
 from eutils._internal.xmlfacades.pubmedarticleset import PubmedArticleSet
 import csv
+
 
 ec = eutils.Client()    
 
@@ -59,14 +63,12 @@ VL  - {article.volume}
 IS  - {article.issue}
 {all_pages}
 DO  - {article.doi}
-ID  - {article.pmc}
-NT  - PMCID:{article.pmid}
+M2  - PMID: {article.pmid}, PMCID: {article.pmc}
 AB  - {article.abstract}
 UR  - https://www.ncbi.nlm.nih.gov/pubmed/{article.pmid}
 ER  - 
 """.replace("\n\n","\n")
     return output
-
 
 def articleSetRIS(aSet: PubmedArticleSet):
     output = list()
@@ -74,6 +76,10 @@ def articleSetRIS(aSet: PubmedArticleSet):
         output.append(articleRIS(article))
     return output
 
-print(articleSetRIS(article_set))
+def savingRIS(articlesetRIS:list):  
+    f = open("nowak_m2fields.ris", "w")
+    f.writelines(formated_article_set)
+    f.close()
 
-
+formated_article_set= articleSetRIS(article_set)
+savingRIS(formated_article_set)
