@@ -1,10 +1,3 @@
-#https://pypi.org/project/nbib/
-#PubmedArticleSet https://dtd.nlm.nih.gov/ncbi/pubmed/el-PubmedArticleSet.html
-#From nbib to RIS?? A bash tool??
-
-#RIS.import.keepID
-#RIS.import.ignoreUnknown
-
 import eutils
 from eutils._internal.xmlfacades.pubmedarticle import PubmedArticle
 from eutils._internal.xmlfacades.pubmedarticleset import PubmedArticleSet
@@ -25,25 +18,14 @@ with open(csvfile) as csv_file:
         if pmid == "NA" or None:
             continue
         pmid_list.append(pmid)
-            
-        #print(pmid)
 
-# search for pcos in pubmed
-# any valid NCBI query may be used
-#query = ec.esearch(db='pubmed',term=pmid)
-#print(f"here is your query:\n{query}")
-#print(f"here is your list of ids:\n{query.ids}")
 
 #fetch all the records. Collection of Pubmed Articles
 article_set = ec.efetch(db="pubmed",id=pmid_list)
 print(article_set)
-# articles = next(iter(fetch))
-# print(f"here is what you fetch:\n{articles}")
 
 #Iterate over a collection of pubmed articles
 #Receives a eutils._internal.xmlfacades.PubmedArticleSet
-
-
 def articleRIS(article: PubmedArticle):
     all_authors=""
     for author in article.authors:
@@ -54,6 +36,12 @@ def articleRIS(article: PubmedArticle):
         sp = article.pages.split('-')[0]
         ep = article.pages.split('-')[-1]
         all_pages = f"SP  - {sp}\nEP  - {ep}"
+    all_ids=""
+    if article.pmc:
+        all_ids=f"M2  - PMID: {article.pmid} PMCID: {article.pmc}\n"
+    else:
+        all_ids= f"M2  - PMID: {article.pmid}\n"
+
     output = f"""TY  - JOUR
 TI  - {article.title}
 {all_authors}
@@ -63,21 +51,23 @@ VL  - {article.volume}
 IS  - {article.issue}
 {all_pages}
 DO  - {article.doi}
-M2  - PMID: {article.pmid}, PMCID: {article.pmc}
+{all_ids}
 AB  - {article.abstract}
 UR  - https://www.ncbi.nlm.nih.gov/pubmed/{article.pmid}
 ER  - 
 """.replace("\n\n","\n")
     return output
 
+#Create a list of articles
 def articleSetRIS(aSet: PubmedArticleSet):
     output = list()
     for article in aSet:
         output.append(articleRIS(article))
     return output
 
+#Creates a RIS file
 def savingRIS(articlesetRIS:list):  
-    f = open("nowak_m2fields.ris", "w")
+    f = open("nowak_fixed.ris", "w")
     f.writelines(formated_article_set)
     f.close()
 
